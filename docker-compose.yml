@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  db:
+    image: postgres:13
+    container_name: arvore_pao_db
+    environment:
+      POSTGRES_DB: arvore_pao
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - arvore_pao_network
+    restart: unless-stopped
+
+  # API FastAPI
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arvore_pao_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:123456@db:5432/arvore_pao
+      - PYTHONPATH=/app
+      - ENVIRONMENT=development
+      - DEBUG=true
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    networks:
+      - arvore_pao_network
+    restart: unless-stopped
+ 
+    command: >
+      bash -c "
+        echo 'Aguardando banco de dados...' &&
+        sleep 15 &&
+        echo 'Iniciando API...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+
+
+  # Adminer (opcional - interface web para PostgreSQL)
+  adminer:
+    image: adminer
+    container_name: arvore_pao_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - arvore_pao_network
+    restart: unless-stopped
+
+# Volumes para persistência de dados
+volumes:
+  postgres_data:
+    driver: local
+
+# Rede personalizada
+networks:
+  arvore_pao_network:
+    driver: bridge
