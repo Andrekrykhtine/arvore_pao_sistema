@@ -1,24 +1,39 @@
-# requirements.txt - VERSÃO CORRIGIDA E TESTADA
-# Web Framework
+# Web Framework - Core da API
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 
-# Database
+# Database - PostgreSQL
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.13.1
 
-# Data Validation
+# Data Validation - Validação de dados
 pydantic==2.5.0
 
-# Utilities
+# File Upload - Upload de arquivos
 python-multipart==0.0.6
-python-decouple==3.8
-requests==2.31.0
 
-# Development & Testing
+# HTTP Requests - Para integrações (N8N, APIs)
+requests==2.31.0
+httpx==0.25.2
+
+# Environment Variables - Configurações
+python-dotenv==1.0.0
+
+# Authentication & Security - JWT e segurança
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Date & Time - Manipulação de datas
+python-dateutil==2.8.2
+
+# Development & Testing - Testes
 pytest==7.4.3
 pytest-asyncio==0.21.1
 
-# Production
+# Production Server - Para deploy
 gunicorn==21.2.0
+
+# Utilities - Utilitários gerais
+typing-extensions==4.8.0
+email-validator==2.1.0

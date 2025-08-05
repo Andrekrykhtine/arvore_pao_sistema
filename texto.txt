@@ -1,8 +1,1 @@
-Creating arvore_pao_db ... 
-Creating arvore_pao_db ... error
-
-ERROR: for arvore_pao_db  Cannot start service db: failed to set up container networking: driver failed programming external connectivity on endpoint arvore_pao_db (4400e8f3817a94b582425d747a4bd58ee0221eadeb693f4e14b6d6e7fcfc863d): failed to bind host port for 0.0.0.0:5432:172.18.0.2:5432/tcp: address already in use
-
-ERROR: for db  Cannot start service db: failed to set up container networking: driver failed programming external connectivity on endpoint arvore_pao_db (4400e8f3817a94b582425d747a4bd58ee0221eadeb693f4e14b6d6e7fcfc863d): failed to bind host port for 0.0.0.0:5432:172.18.0.2:5432/tcp: address already in use
-ERROR: Encountered errors while bringing up the project.
-
+SECRET_KEY=4QbeHdNgtg42fSdYcqEHEgafyn8P-80h95_ngHAYVpg

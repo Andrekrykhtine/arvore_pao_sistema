@@ -1,4 +1,4 @@
-# .gitignore
+# === PYTHON ===
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,9 +19,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Environment
+# === ENVIRONMENT ===
 .env
+.env.local
+.env.production
 .venv
 env/
 venv/
@@ -29,26 +32,39 @@ ENV/
 env.bak/
 venv.bak/
 
-# Database
+# === DATABASE ===
 *.db
 *.sqlite3
+*.sqlite
 
-# Uploads
+# === LOGS ===
+logs/
+*.log
+
+# === UPLOADS ===
 uploads/*
 !uploads/.gitkeep
 temp/*
 !temp/.gitkeep
 
-# Docker
+# === DOCKER ===
 .dockerignore
 
-# IDE
+# === IDE ===
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
+
+# === BACKUP ===
+backup/
+*.bak
+*.backup
+
+# === SECRETS ===
+secrets/
+keys/
+certificates/
