@@ -97,5 +97,5 @@ class Settings:
 
 # Instância global das configurações
 settings = Settings()
-EOF
+
 

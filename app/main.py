@@ -1,149 +1,80 @@
-"""
-Aplicação Principal - Sistema Árvore Pão
-"""
 from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from app.core.config import settings
-from app.core.database import engine, Base, test_connection, get_db_info, health_check
-import logging
+from app.core.database import test_connection, create_tables, get_table_info
 from datetime import datetime
+import logging
 
 # Configurar logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(settings.LOG_FILE),
-        logging.StreamHandler()
-    ]
-)
-
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# === CRIAR TABELAS ===
-try:
-    Base.metadata.create_all(bind=engine)
-    logger.info("✅ Tabelas criadas/verificadas com sucesso")
-except Exception as e:
-    logger.error(f"❌ Erro ao criar tabelas: {e}")
-
-# === CRIAR APLICAÇÃO ===
+# Criar aplicação
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description=settings.PROJECT_DESCRIPTION,
     version=settings.PROJECT_VERSION,
-    docs_url="/docs" if settings.DEBUG else None,
-    redoc_url="/redoc" if settings.DEBUG else None,
-    openapi_url="/openapi.json" if settings.DEBUG else None
+    description=settings.PROJECT_DESCRIPTION
 )
 
-# === MIDDLEWARE CORS ===
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# === ROUTES PRINCIPAIS ===
 @app.get("/")
 def read_root():
-    """Endpoint raiz - informações básicas"""
     return {
         "message": f"{settings.PROJECT_NAME} está funcionando!",
         "version": settings.PROJECT_VERSION,
         "environment": settings.ENVIRONMENT,
-        "timestamp": datetime.now().isoformat(),
-        "debug": settings.DEBUG
+        "timestamp": datetime.now().isoformat()
     }
 
 @app.get("/health")
-def health_check_endpoint():
-    """Health check completo do sistema"""
-    db_health = health_check()
+def health_check():
+    db_connected = test_connection()
+    table_info = get_table_info()
     
     return {
-        "status": "healthy" if db_health["database"] == "healthy" else "unhealthy",
+        "status": "healthy" if db_connected else "unhealthy",
+        "database": "connected" if db_connected else "disconnected",
+        "tables": table_info,
         "timestamp": datetime.now().isoformat(),
-        "environment": settings.ENVIRONMENT,
-        "version": settings.PROJECT_VERSION,
-        "database": db_health,
-        "services": {
-            "api": "running",
-            "database": db_health["database"]
-        }
+        "version": settings.PROJECT_VERSION
     }
 
-@app.get("/config")
-def get_config():
-    """Informações de configuração (apenas development)"""
-    if settings.ENVIRONMENT != "development":
-        return JSONResponse(
-            status_code=403,
-            content={"error": "Endpoint disponível apenas em development"}
-        )
+@app.get("/database/info")
+def database_info():
+    """Informações detalhadas do banco de dados"""
+    return {
+        "database_url": settings.DATABASE_URL.replace(settings.DB_PASSWORD, "***"),
+        "connection_status": "connected" if test_connection() else "disconnected",
+        "table_info": get_table_info(),
+        "environment": settings.ENVIRONMENT
+    }
+
+@app.post("/database/create-tables")
+def create_database_tables():
+    """Criar tabelas do banco de dados"""
+    success = create_tables()
     
     return {
-        "project": {
-            "name": settings.PROJECT_NAME,
-            "version": settings.PROJECT_VERSION,
-            "environment": settings.ENVIRONMENT
-        },
-        "database": {
-            "host": settings.DB_HOST,
-            "port": settings.DB_PORT,
-            "name": settings.DB_NAME,
-            "user": settings.DB_USER
-        },
-        "api": {
-            "host": settings.API_HOST,
-            "port": settings.API_PORT,
-            "debug": settings.DEBUG
-        },
-        "directories": {
-            "upload": settings.UPLOAD_DIR,
-            "temp": settings.TEMP_DIR,
-            "log": settings.LOG_FILE
-        }
+        "success": success,
+        "message": "Tabelas criadas com sucesso" if success else "Erro ao criar tabelas",
+        "table_info": get_table_info()
     }
 
-# === ERROR HANDLERS ===
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    logger.error(f"Erro global: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={"error": "Erro interno do servidor", "detail": str(exc) if settings.DEBUG else None}
-    )
-
-# === STARTUP EVENTS ===
 @app.on_event("startup")
 async def startup_event():
     """Eventos de inicialização"""
-    logger.info(f"🚀 Iniciando {settings.PROJECT_NAME} v{settings.PROJECT_VERSION}")
-    logger.info(f"🔧 Ambiente: {settings.ENVIRONMENT}")
-    logger.info(f"🔍 Debug: {settings.DEBUG}")
+    logger.info(f"🚀 Iniciando {settings.PROJECT_NAME}")
     
-    # Testar conexão com banco
+    # Testar conexão
     if test_connection():
         logger.info("✅ Conexão com banco estabelecida")
+        
+        # Criar tabelas automaticamente
+        if create_tables():
+            logger.info("✅ Tabelas verificadas/criadas")
+        else:
+            logger.error("❌ Erro ao criar tabelas")
     else:
         logger.error("❌ Falha na conexão com banco")
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Eventos de finalização"""
-    logger.info("🛑 Finalizando aplicação...")
-
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        app, 
-        host=settings.API_HOST,
-        port=settings.API_PORT,
-        log_level=settings.LOG_LEVEL.lower(),
-        reload=settings.DEBUG
-    )
-EOF
+    uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
