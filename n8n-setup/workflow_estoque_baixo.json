@@ -1,0 +1,44 @@
+{
+  "name": "🚨 Alerta Estoque Baixo - Árvore Pão",
+  "description": "Monitora produtos com estoque baixo e envia alertas",
+  "nodes": [
+    {
+      "name": "A cada 2 horas",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "hours", "hoursInterval": 2}]
+        }
+      },
+      "position": [240, 300]
+    },
+    {
+      "name": "Buscar Produtos Estoque Baixo",
+      "type": "n8n-nodes-base.code",
+      "parameters": {
+        "jsCode": "const response = await fetch('http://172.18.0.4:8000/api/v1/produtos/?estoque_baixo=true');\nconst data = await response.json();\nreturn [{json: data}];"
+      },
+      "position": [460, 300]
+    },
+    {
+      "name": "Tem Produtos?",
+      "type": "n8n-nodes-base.if",
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.produtos.length }}",
+              "operation": "largerEqual",
+              "value2": 1
+            }
+          ]
+        }
+      },
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "A cada 2 horas": {"main": [["Buscar Produtos Estoque Baixo"]]},
+    "Buscar Produtos Estoque Baixo": {"main": [["Tem Produtos?"]]}
+  }
+}

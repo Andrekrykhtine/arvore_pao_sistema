@@ -1,0 +1,19 @@
+{
+  "executions": {
+    "mode": "regular",
+    "timeout": 900,
+    "maxTimeout": 3600,
+    "saveDataOnError": "all",
+    "saveDataOnSuccess": "all"
+  },
+  "security": {
+    "authCookie": {
+      "secure": false
+    }
+  },
+  "endpoints": {
+    "rest": "rest",
+    "webhook": "webhook",
+    "webhookWaiting": "webhook-waiting"
+  }
+}

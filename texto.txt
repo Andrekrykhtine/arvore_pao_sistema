@@ -1,0 +1,17 @@
+ preco_venda             | YES         | double precision            | 
+ margem_lucro            | YES         | double precision            | 
+ fornecedor_principal    | YES         | character varying           | 
+ codigo_fornecedor       | YES         | character varying           | 
+ ativo                   | NO          | boolean                     | 
+ perecivel               | YES         | boolean                     | 
+ controlado              | YES         | boolean                     | 
+ localizacao             | YES         | character varying           | 
+ created_at              | YES         | timestamp with time zone    | now()
+ updated_at              | YES         | timestamp with time zone    | now()
+ created_by              | YES         | character varying           | 
+ updated_by              | YES         | character varying           | 
+ categoria_id            | YES         | integer                     | 
+ fornecedor_principal_id | YES         | integer                     | 
+ is_active               | YES         | boolean                     | true
+ deleted_at              | YES         | timestamp without time zone | 
+(32 rows)
