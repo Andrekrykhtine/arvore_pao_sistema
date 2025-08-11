@@ -1,0 +1,153 @@
+# Arquivo temporário - será implementado gradualmente
+# app/schemas/analytics_produtos.py
+from pydantic import BaseModel, Field
+from typing import List, Dict, Optional, Any
+from datetime import datetime, date
+from decimal import Decimal
+from enum import Enum
+
+# ========================
+# MODELOS DE ANALYTICS
+# ========================
+
+class MetricaProduto(BaseModel):
+    """Métricas básicas de um produto"""
+    produto_id: int = Field(..., description="ID do produto")
+    nome: str = Field(..., description="Nome do produto")
+    categoria: str = Field(..., description="Categoria do produto")
+    
+    # Métricas de estoque
+    quantidade_atual: Decimal = Field(..., description="Quantidade atual")
+    quantidade_minima: Decimal = Field(..., description="Quantidade mínima")
+    percentual_estoque: float = Field(..., description="Percentual do estoque ideal")
+    dias_estoque_restante: Optional[int] = Field(None, description="Dias de estoque restante")
+    
+    # Métricas financeiras
+    preco_venda: Decimal = Field(..., description="Preço de venda")
+    preco_custo: Optional[Decimal] = Field(None, description="Preço de custo")
+    margem_bruta: Optional[Decimal] = Field(None, description="Margem bruta")
+    margem_percentual: Optional[float] = Field(None, description="Margem percentual")
+    valor_estoque_total: Decimal = Field(..., description="Valor total em estoque")
+    
+    # Status e alertas
+    status_estoque: str = Field(..., description="Status do estoque")
+    precisa_reposicao: bool = Field(..., description="Precisa reposição")
+    nivel_urgencia: int = Field(..., ge=1, le=5, description="Nível de urgência (1-5)")
+
+class ResumoAnalytics(BaseModel):
+    """Resumo geral de analytics"""
+    total_produtos: int = Field(..., description="Total de produtos cadastrados")
+    produtos_ativos: int = Field(..., description="Produtos ativos")
+    produtos_estoque_baixo: int = Field(..., description="Produtos com estoque baixo")
+    produtos_sem_estoque: int = Field(..., description="Produtos sem estoque")
+    
+    valor_total_estoque: Decimal = Field(..., description="Valor total do estoque")
+    margem_media: Optional[float] = Field(None, description="Margem média dos produtos")
+    
+    # Top performers
+    produto_maior_valor: Optional[Dict[str, Any]] = Field(None, description="Produto com maior valor em estoque")
+    produto_maior_margem: Optional[Dict[str, Any]] = Field(None, description="Produto com maior margem")
+    categoria_dominante: Optional[Dict[str, Any]] = Field(None, description="Categoria com mais produtos")
+    
+    gerado_em: datetime = Field(default_factory=datetime.now, description="Data/hora de geração")
+
+class AnalyticsPorCategoria(BaseModel):
+    """Analytics agrupados por categoria"""
+    categoria: str = Field(..., description="Nome da categoria")
+    total_produtos: int = Field(..., description="Total de produtos na categoria")
+    valor_total_estoque: Decimal = Field(..., description="Valor total em estoque")
+    margem_media: Optional[float] = Field(None, description="Margem média da categoria")
+    
+    produtos_estoque_baixo: int = Field(default=0, description="Produtos com estoque baixo")
+    produto_mais_vendido: Optional[str] = Field(None, description="Produto mais vendido da categoria")
+    percentual_do_total: float = Field(..., description="Percentual do estoque total")
+
+class TendenciaMetrica(BaseModel):
+    """Tendência de uma métrica ao longo do tempo"""
+    metrica: str = Field(..., description="Nome da métrica")
+    valor_atual: Decimal = Field(..., description="Valor atual")
+    valor_anterior: Optional[Decimal] = Field(None, description="Valor anterior")
+    variacao: Optional[Decimal] = Field(None, description="Variação absoluta")
+    variacao_percentual: Optional[float] = Field(None, description="Variação percentual")
+    tendencia: str = Field(..., description="Tendência: crescimento, declinio, estavel")
+
+class RelatorioAnalytics(BaseModel):
+    """Relatório completo de analytics"""
+    resumo_geral: ResumoAnalytics = Field(..., description="Resumo geral")
+    metricas_produtos: List[MetricaProduto] = Field(..., description="Métricas por produto")
+    analytics_categorias: List[AnalyticsPorCategoria] = Field(..., description="Analytics por categoria")
+    
+    # Rankings
+    top_produtos_valor: List[Dict[str, Any]] = Field(..., description="Top produtos por valor")
+    top_produtos_margem: List[Dict[str, Any]] = Field(..., description="Top produtos por margem")
+    produtos_atencao: List[Dict[str, Any]] = Field(..., description="Produtos que precisam atenção")
+    
+    # Tendências (simuladas por enquanto)
+    tendencias: List[TendenciaMetrica] = Field(default_factory=list, description="Tendências de métricas")
+    
+    # Recomendações automáticas
+    recomendacoes: List[str] = Field(default_factory=list, description="Recomendações baseadas em dados")
+    
+    periodo_analise: str = Field(default="tempo_real", description="Período da análise")
+    gerado_em: datetime = Field(default_factory=datetime.now, description="Data/hora de geração")
+
+class AlertaInteligente(BaseModel):
+    """Sistema de alertas baseado em analytics"""
+    tipo: str = Field(..., description="Tipo do alerta: CRITICO, ALTO, MEDIO, BAIXO")
+    categoria: str = Field(..., description="Categoria: estoque, margem, vendas, etc")
+    titulo: str = Field(..., description="Título do alerta")
+    descricao: str = Field(..., description="Descrição detalhada")
+    produto_id: Optional[int] = Field(None, description="ID do produto relacionado")
+    produto_nome: Optional[str] = Field(None, description="Nome do produto")
+    valor_metrica: Optional[Decimal] = Field(None, description="Valor da métrica que gerou alerta")
+    threshold: Optional[Decimal] = Field(None, description="Limite configurado")
+    urgencia: int = Field(..., ge=1, le=5, description="Nível de urgência")
+    acao_sugerida: str = Field(..., description="Ação sugerida para resolver")
+    data_criacao: datetime = Field(default_factory=datetime.now, description="Data/hora do alerta")
+
+class DashboardKPIs(BaseModel):
+    """KPIs principais para dashboard"""
+    
+    # KPIs de Estoque
+    valor_total_estoque: Decimal = Field(..., description="Valor total investido em estoque")
+    produtos_estoque_critico: int = Field(..., description="Produtos em situação crítica")
+    percentual_disponibilidade: float = Field(..., description="% de produtos disponíveis")
+    
+    # KPIs Financeiros  
+    margem_media_geral: Optional[float] = Field(None, description="Margem média de todos produtos")
+    produto_maior_rentabilidade: Optional[Dict[str, Any]] = Field(None, description="Produto mais rentável")
+    potencial_receita: Decimal = Field(..., description="Potencial de receita do estoque atual")
+    
+    # KPIs Operacionais
+    produtos_precisam_reposicao: int = Field(..., description="Produtos que precisam reposição")
+    categorias_balanceadas: int = Field(..., description="Categorias com estoque balanceado")
+    score_saude_estoque: float = Field(..., ge=0, le=100, description="Score geral de saúde (0-100)")
+    
+    # Alertas Resume
+    total_alertas_ativos: int = Field(..., description="Total de alertas ativos")
+    alertas_criticos: int = Field(..., description="Alertas críticos")
+    
+    ultima_atualizacao: datetime = Field(default_factory=datetime.now, description="Última atualização")
+
+# ========================
+# MODELOS DE CONFIGURAÇÃO
+# ========================
+
+class ConfigAnalytics(BaseModel):
+    """Configurações para geração de analytics"""
+    incluir_inativos: bool = Field(default=False, description="Incluir produtos inativos")
+    periodo_dias: int = Field(default=30, ge=1, le=365, description="Período para análise")
+    limite_top_produtos: int = Field(default=10, ge=5, le=50, description="Limite para rankings")
+    
+    # Thresholds para alertas
+    threshold_estoque_baixo: float = Field(default=1.0, description="Multiplicador para estoque baixo")
+    threshold_margem_baixa: float = Field(default=10.0, description="Margem baixa (%)")
+    threshold_valor_alto: Decimal = Field(default=Decimal('1000'), description="Valor alto para alertas")
+
+class MetricasComparativas(BaseModel):
+    """Métricas comparativas entre produtos ou períodos"""
+    produto_base: Dict[str, Any] = Field(..., description="Produto de referência")
+    produtos_comparacao: List[Dict[str, Any]] = Field(..., description="Produtos para comparar")
+    
+    metricas_comparadas: List[str] = Field(..., description="Métricas sendo comparadas")
+    melhor_performance: Dict[str, Any] = Field(..., description="Produto

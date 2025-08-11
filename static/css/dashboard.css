@@ -1,0 +1,113 @@
+:root {
+    --arvore-primary: #8B4513;
+    --arvore-secondary: #D2691E;
+    --arvore-success: #228B22;
+    --arvore-warning: #FF8C00;
+    --arvore-danger: #DC143C;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.1);
+    border: none;
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background: linear-gradient(45deg, var(--arvore-primary), var(--arvore-secondary));
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.bg-primary {
+    background: var(--arvore-primary) !important;
+}
+
+.bg-secondary {
+    background: var(--arvore-secondary) !important;
+}
+
+.bg-success {
+    background: var(--arvore-success) !important;
+}
+
+.bg-warning {
+    background: var(--arvore-warning) !important;
+}
+
+.bg-danger {
+    background: var(--arvore-danger) !important;
+}
+
+/* Animações para KPIs */
+.card-body h3 {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Status badges */
+.status-normal { background-color: var(--arvore-success) !important; }
+.status-baixo { background-color: var(--arvore-warning) !important; }
+.status-critico { background-color: var(--arvore-danger) !important; }
+
+/* Alertas */
+.alert-critico {
+    border-left: 4px solid var(--arvore-danger);
+    background-color: #fff5f5;
+}
+
+.alert-alto {
+    border-left: 4px solid var(--arvore-warning);
+    background-color: #fff8f0;
+}
+
+.alert-medio {
+    border-left: 4px solid #ffc107;
+    background-color: #fffbf0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 10px;
+    }
+    
+    .card-body h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Loading spinner */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--arvore-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

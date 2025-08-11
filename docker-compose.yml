@@ -48,8 +48,6 @@ services:
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
 
-
-
   # Adminer (opcional - interface web para PostgreSQL)
   adminer:
     image: adminer
@@ -62,10 +60,31 @@ services:
       - arvore_pao_network
     restart: unless-stopped
 
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: arvore_pao_n8n
+    restart: always
+    environment:
+      - N8N_PROTOCOL=http
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - N8N_LOG_LEVEL=info
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - arvore_pao_network
+    depends_on:
+      - api
+
 # Volumes para persistência de dados
 volumes:
   postgres_data:
     driver: local
+  n8n_data: {}
 
 # Rede personalizada
 networks:
