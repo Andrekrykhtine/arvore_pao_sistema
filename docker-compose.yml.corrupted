@@ -53,6 +53,14 @@ services:
     networks:
       - arvore_pao_network
 
+volumes:
+  postgres_data:
+
+networks:
+  arvore_pao_network:
+    driver: bridge
+    name: arvore_pao_network
+
   n8n:
     image: docker.n8n.io/n8nio/n8n
     container_name: arvore_pao_n8n
@@ -76,11 +84,27 @@ services:
     depends_on:
       - db
 
-volumes:
-  postgres_data:
-  n8n_data:
 
-networks:
-  arvore_pao_network:
-    driver: bridge
-    name: arvore_pao_network
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: arvore_pao_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=arvore123
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - arvore_pao_network
+    depends_on:
+      - db
+

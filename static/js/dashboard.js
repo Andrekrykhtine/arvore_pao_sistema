@@ -279,3 +279,267 @@ class ArvorepaoDashboard {
 document.addEventListener('DOMContentLoaded', () => {
     new ArvorepaoDashboard();
 });
+
+// ========================
+// FUNCIONALIDADES DE IA
+// ========================
+
+class AIFeatures {
+    constructor() {
+        this.aiEndpoints = {
+            insights: '/api/v1/ai/insights',
+            restockSuggestions: '/api/v1/ai/restock-suggestions',
+            trainModels: '/api/v1/ai/train-models'
+        };
+    }
+
+    async loadAIInsights() {
+        try {
+            const response = await fetch(this.aiEndpoints.insights);
+            if (!response.ok) {
+                // Se modelos não estão treinados, treinar primeiro
+                if (response.status === 400) {
+                    await this.trainModels();
+                    return await this.loadAIInsights();
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const insights = await response.json();
+            this.displayAIInsights(insights);
+            return insights;
+            
+        } catch (error) {
+            console.error('Erro ao carregar insights IA:', error);
+            this.showAIError('Erro ao carregar insights de IA');
+        }
+    }
+
+    async trainModels() {
+        try {
+            console.log('🤖 Treinando modelos de IA...');
+            const response = await fetch(this.aiEndpoints.trainModels, { method: 'POST' });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('✅ Modelos treinados:', result);
+            
+            this.showAISuccess(`Modelos IA treinados! ${result.models_trained} modelos com ${result.training_samples} amostras`);
+            
+        } catch (error) {
+            console.error('Erro ao treinar modelos:', error);
+            this.showAIError('Erro ao treinar modelos de IA');
+        }
+    }
+
+    displayAIInsights(insights) {
+        // Criar seção de IA no dashboard se não existir
+        let aiSection = document.getElementById('ai-insights-section');
+        if (!aiSection) {
+            aiSection = document.createElement('div');
+            aiSection.id = 'ai-insights-section';
+            aiSection.className = 'row mt-4';
+            
+            const dashboardContent = document.querySelector('.container-fluid .row:last-child');
+            dashboardContent.parentNode.insertBefore(aiSection, dashboardContent.nextSibling);
+        }
+
+        aiSection.innerHTML = `
+            <div class="col-12">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-robot me-2"></i>Insights de IA - Sistema Árvore Pão</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-primary">${insights.produtos_precisam_reposicao}</h3>
+                                    <p class="mb-0">Produtos Precisam Reposição</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-success">R$ ${insights.economia_estimada_otimizacao.toLocaleString('pt-BR')}</h3>
+                                    <p class="mb-0">Economia Estimada</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-info">${insights.demanda_total_prevista_7d.toFixed(1)}</h3>
+                                    <p class="mb-0">Demanda Prevista 7d</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h3 class="text-warning">${insights.score_saude_ia}%</h3>
+                                    <p class="mb-0">Score Saúde IA</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-chart-line me-2"></i>Tendências Identificadas:</h6>
+                                <ul class="list-unstyled">
+                                    ${insights.tendencias_identificadas.map(t => `<li><i class="fas fa-arrow-right text-primary me-2"></i>${t}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-lightbulb me-2"></i>Recomendações Estratégicas:</h6>
+                                <ul class="list-unstyled">
+                                    ${insights.recomendacoes_estrategicas.map(r => `<li><i class="fas fa-check text-success me-2"></i>${r}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6><i class="fas fa-star me-2"></i>Produtos Alta Prioridade:</h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    ${insights.produtos_alta_prioridade.map(p => `<span class="badge bg-warning text-dark">${p}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12 text-center">
+                                <button class="btn btn-primary btn-sm me-2" onclick="aiFeatures.loadRestockSuggestions()">
+                                    <i class="fas fa-boxes me-1"></i>Ver Sugestões Reposição
+                                </button>
+                                <button class="btn btn-success btn-sm me-2" onclick="aiFeatures.trainModels()">
+                                    <i class="fas fa-robot me-1"></i>Retreinar IA
+                                </button>
+                                <small class="text-muted">Gerado em: ${new Date(insights.gerado_em).toLocaleString('pt-BR')}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async loadRestockSuggestions() {
+        try {
+            const response = await fetch(this.aiEndpoints.restockSuggestions);
+            const suggestions = await response.json();
+            
+            this.displayRestockSuggestions(suggestions);
+            
+        } catch (error) {
+            console.error('Erro ao carregar sugestões:', error);
+            this.showAIError('Erro ao carregar sugestões de reposição');
+        }
+    }
+
+    displayRestockSuggestions(suggestions) {
+        // Criar modal para mostrar sugestões
+        const modalHtml = `
+            <div class="modal fade" id="restockModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fas fa-robot me-2"></i>Sugestões de Reposição IA</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Produto</th>
+                                            <th>Categoria</th>
+                                            <th>Estoque</th>
+                                            <th>Sugestão</th>
+                                            <th>Urgência</th>
+                                            <th>Custo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${suggestions.map(s => `
+                                            <tr>
+                                                <td><strong>${s.produto_nome}</strong><br><small class="text-muted">${s.motivo_ia}</small></td>
+                                                <td><span class="badge bg-secondary">${s.categoria}</span></td>
+                                                <td>${s.estoque_atual}<br><small class="text-muted">${s.dias_para_acabar} dias</small></td>
+                                                <td class="text-primary"><strong>${s.quantidade_sugerida}</strong></td>
+                                                <td><span class="badge ${this.getUrgencyClass(s.urgencia)}">${s.urgencia}</span></td>
+                                                <td>R$ ${s.custo_estimado.toLocaleString('pt-BR')}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                            <button type="button" class="btn btn-primary">Gerar Pedido Automático</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remover modal existente se houver
+        const existingModal = document.getElementById('restockModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Adicionar novo modal
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.getElementById('restockModal'));
+        modal.show();
+    }
+
+    getUrgencyClass(urgencia) {
+        const classes = {
+            'CRITICA': 'bg-danger',
+            'ALTA': 'bg-warning', 
+            'MEDIA': 'bg-info',
+            'BAIXA': 'bg-success'
+        };
+        return classes[urgencia] || 'bg-secondary';
+    }
+
+    showAISuccess(message) {
+        const alertHtml = `
+            <div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 1050;" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+    }
+
+    showAIError(message) {
+        const alertHtml = `
+            <div class="alert alert-danger alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 1050;" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+    }
+}
+
+// Instanciar funcionalidades de IA
+const aiFeatures = new AIFeatures();
+
+// Modificar o dashboard principal para incluir IA
+const originalDashboard = ArvorepaoDashboard.prototype.loadDashboardData;
+ArvorepaoDashboard.prototype.loadDashboardData = async function() {
+    // Carregar dados originais
+    await originalDashboard.call(this);
+    
+    // Carregar insights de IA
+    await aiFeatures.loadAIInsights();
+};

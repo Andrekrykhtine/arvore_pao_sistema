@@ -1,11 +1,158 @@
+head -70 ~/Documentos/arvore_pao_system/app/main.py | nl
+
+# Procurar por todas as linhas que usam @app
+grep -n "@app\." ~/Documentos/arvore_pao_system/app/main.py
+
+# Procurar onde app é definido
+grep -n "app = FastAPI" ~/Documentos/arvore_pao_system/app/main.py
+     1  from fastapi import FastAPI, Depends, HTTPException, Query
+     2  from sqlalchemy.orm import Session
+     3  from typing import List, Optional
+     4  from decimal import Decimal
+     5  import logging
+       
+     6  logger = logging.getLogger(__name__)
+       
+     7  from app.core.database import get_db
+       
+     8  from app.schemas.analytics_produtos import (
+     9      MetricaProduto, ResumoAnalytics, RelatorioAnalytics, 
+    10      AlertaInteligente, DashboardKPIs, AnalyticsPorCategoria
+    11  )
+       
+    12  app = FastAPI(title="🍞 Sistema Árvore Pão - Básico Funcional")
+       
+    13  @app.get("/health")
+    14  def health_check():
+    15      return {
+    16          "status": "healthy", 
+    17          "message": "API funcionando corretamente",
+    18          "version": "1.0.0"
+    19      }
+       
+    20  @app.get("/")
+    21  def root():
+    22      return {
+    23          "message": "🍞 Sistema Árvore Pão",
+    24          "status": "funcionando",
+    25          "endpoints": ["/health", "/produtos"]
+    26      }
+       
+    27  @app.get("/produtos")
+    28  def listar_produtos():
+    29      return {
+    30          "produtos": [],
+    31          "total": 0,
+    32          "message": "Endpoint básico funcionando - ready para implementar CRUD"
+    33      }
+       
+    34  @app.get("/test")
+    35  def test_endpoint():
+    36      return {
+    37          "test": "success",
+    38          "database": "pending",
+    39          "schemas": "basic",
+    40          "message": "API básica funcionando perfeitamente"
+    41      }
+       
+    42  # ========================
+    43  # ENDPOINTS DE ANALYTICS
+    44  # ========================
+       
+    45  # ========================
+    46  # ENDPOINTS DE ANALYTICS
+    47  # ========================
+    48  from app.schemas.analytics_produtos import (
+    49      MetricaProduto, ResumoAnalytics, RelatorioAnalytics, 
+    50      AlertaInteligente, DashboardKPIs, AnalyticsPorCategoria
+    51  )
+       
+    52  @app.get("/api/v1/analytics/resumo", response_model=ResumoAnalytics)
+    53  def analytics_resumo_geral(db: Session = Depends(get_db)):
+    54      """📊 Resumo geral de analytics dos produtos"""
+    55      try:
+    56          # Simular conexão com banco para buscar dados reais
+    57          # Por enquanto, vamos usar dados mock baseados na estrutura real
+    58          
+    59          return ResumoAnalytics(
+18:@app.get("/health")
+26:@app.get("/")
+34:@app.get("/produtos")
+42:@app.get("/test")
+63:@app.get("/api/v1/analytics/resumo", response_model=ResumoAnalytics)
+98:@app.get("/api/v1/analytics/produtos", response_model=List[MetricaProduto])
+138:@app.get("/api/v1/analytics/categorias", response_model=List[AnalyticsPorCategoria])
+178:@app.get("/api/v1/analytics/kpis", response_model=DashboardKPIs)
+204:@app.get("/api/v1/analytics/alertas", response_model=List[AlertaInteligente])
+256:@app.get("/api/v1/analytics/relatorio-completo")
+341:@app.get("/api/v1/analytics/resumo-real", response_model=ResumoAnalytics)
+428:@app.get("/api/v1/analytics/produtos-real", response_model=List[MetricaProduto])
+516:@app.get("/api/v1/analytics/categorias-real", response_model=List[AnalyticsPorCategoria])
+574:@app.get("/api/v1/analytics/alertas-real", response_model=List[AlertaInteligente])
+675:@app.get("/dashboard", response_class=HTMLResponse)
+685:@app.get("/", response_class=HTMLResponse)
+724:@app.get("/api/v1/n8n/alertas-criticos")
+805:@app.get("/api/v1/n8n/resumo-diario")
+879:@app.post("/api/v1/n8n/trigger-alert")
+929:@app.post("/api/v1/ai/train-models")
+966:@app.get("/api/v1/ai/demand-forecast/{produto_id}")
+1007:@app.get("/api/v1/ai/restock-suggestions", response_model=List[RestockSuggestion])
+1041:@app.get("/api/v1/ai/price-optimization/{produto_id}")
+1082:@app.get("/api/v1/ai/insights", response_model=AIInsights)
+1160:@app.get("/api/v1/ai/seasonal-analysis/{categoria}")
+16:app = FastAPI(title="🍞 Sistema Árvore Pão - Básico Funcional")
+ndre@Beterraba:~/Documentos/arvore_pao_system/app$ # Verificar sintaxe
+python3 -m py_compile main.py
+
+# Testar import
+python3 -c "import main; print('✅ Import OK - app definido corretamente')"
+
+# Verificar se app está definido
+python3 -c "
+import main
+print(f'✅ FastAPI app: {main.app}')
+print(f'✅ Título: {main.app.title}')
+"
+  File "main.py", line 65
+    """🏠 Endpoint raiz"""quer
+                         ^^^^
+SyntaxError: invalid syntax
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/home/andre/Documentos/arvore_pao_system/app/main.py", line 65
+    """🏠 Endpoint raiz"""quer
+                         ^^^^
+SyntaxError: invalid syntax
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+  File "/home/andre/Documentos/arvore_pao_system/app/main.py", line 65
+    """🏠 Endpoint raiz"""quer
+                         ^^^^
+SyntaxError: invalid syntax
+andre@Beterraba:~/Documentos/arvore_pao_system/app$ # Reiniciar API com código corrigido
+cd ~/Documentos/arvore_pao_system
 docker-compose restart api
 
 # Aguardar inicialização
-sleep 30
+sleep 20
 
-# Testar novos endpoints de analytics
+# Testar endpoints
+curl http://localhost:8000/health
+curl http://localhost:8000/produtos
 curl http://localhost:8000/api/v1/analytics/resumo
-curl http://localhost:8000/api/v1/analytics/produtos  
-curl http://localhost:8000/api/v1/analytics/categorias
-curl http://localhost:8000/api/v1/analytics/kpis
-curl http://localhost:8000/api/v1/analytics/alertas
+curl -X POST http://localhost:8000/api/v1/ai/train-basic
+Restarting arvore_pao_api ... done
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+andre@Beterraba:~/Documentos/arvore_pao_system$ # Testar endpoints
+curl http://localhost:8000/health
+curl http://localhost:8000/produtos
+curl http://localhost:8000/api/v1/analytics/resumo
+curl -X POST http://localhost:8000/api/v1/ai/train-basic
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+curl: (56) Recv failure: Conexão fechada pela outra ponta
+andre@Beterraba:~/Documentos/arvore_pao_system$ ^C
